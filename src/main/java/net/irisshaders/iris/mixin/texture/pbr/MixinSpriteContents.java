@@ -2,14 +2,14 @@ package net.irisshaders.iris.mixin.texture.pbr;
 
 import net.irisshaders.iris.texture.pbr.PBRSpriteHolder;
 import net.irisshaders.iris.texture.pbr.SpriteContentsExtension;
-import net.minecraft.client.renderer.texture.SpriteContents;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(SpriteContents.class)
+@Mixin(TextureAtlasSprite.class)
 public class MixinSpriteContents implements SpriteContentsExtension {
 	@Unique
 	private PBRSpriteHolder pbrHolder;

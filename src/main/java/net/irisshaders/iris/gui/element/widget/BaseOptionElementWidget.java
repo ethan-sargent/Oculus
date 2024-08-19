@@ -1,6 +1,5 @@
 package net.irisshaders.iris.gui.element.widget;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.irisshaders.iris.gui.GuiUtil;
 import net.irisshaders.iris.gui.NavigationController;
@@ -9,28 +8,30 @@ import net.irisshaders.iris.shaderpack.option.menu.OptionMenuElement;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.navigation.ScreenDirection;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Optional;
 
 public abstract class BaseOptionElementWidget<T extends OptionMenuElement> extends CommentedElementWidget<T> {
-	protected static final Component SET_TO_DEFAULT = Component.translatable("options.iris.setToDefault").withStyle(ChatFormatting.GREEN);
-	protected static final Component DIVIDER = Component.literal(": ");
+	protected static final Component SET_TO_DEFAULT = new TranslatableComponent("options.iris.setToDefault").withStyle(ChatFormatting.GREEN);
+	protected static final Component DIVIDER = new TextComponent(": ");
 
 	protected MutableComponent unmodifiedLabel;
 	protected ShaderPackScreen screen;
 	protected NavigationController navigation;
+	private MutableComponent label;
+
 	protected Component trimmedLabel;
 	protected Component valueLabel;
-	protected boolean usedKeyboard;
-	private MutableComponent label;
+
 	private boolean isLabelTrimmed;
 	private int maxLabelWidth;
 	private int valueSectionWidth;
@@ -52,10 +53,7 @@ public abstract class BaseOptionElementWidget<T extends OptionMenuElement> exten
 		this.unmodifiedLabel = label;
 	}
 
-	protected final void updateRenderParams(int minValueSectionWidth) {
-		// Check if we used the keyboard to access this value
-		usedKeyboard = isFocused();
-
+	protected final void updateRenderParams(int width, int minValueSectionWidth) {
 		// Lazy init of value label
 		if (this.valueLabel == null) {
 			this.valueLabel = createValueLabel();
@@ -66,7 +64,7 @@ public abstract class BaseOptionElementWidget<T extends OptionMenuElement> exten
 		this.valueSectionWidth = Math.max(minValueSectionWidth, font.width(this.valueLabel) + 8);
 
 		// Determine maximum width of trimmed label
-		this.maxLabelWidth = (bounds.width() - 8) - this.valueSectionWidth;
+		this.maxLabelWidth = (width - 8) - this.valueSectionWidth;
 
 		// Lazy init of trimmed label, and make sure it is only trimmed when necessary
 		if (this.trimmedLabel == null || font.width(this.label) > this.maxLabelWidth != isLabelTrimmed) {
@@ -77,14 +75,14 @@ public abstract class BaseOptionElementWidget<T extends OptionMenuElement> exten
 		this.isLabelTrimmed = font.width(this.label) > this.maxLabelWidth;
 	}
 
-	protected final void renderOptionWithValue(PoseStack poseStack, boolean hovered, float sliderPosition, int sliderWidth) {
+	protected final void renderOptionWithValue(PoseStack poseStack, int x, int y, int width, int height, boolean hovered, float sliderPosition, int sliderWidth) {
 		GuiUtil.bindIrisWidgetsTexture();
 
 		// Draw button background
-		GuiUtil.drawButton(poseStack, bounds.position().x(), bounds.position().y(), bounds.width(), bounds.height(), hovered, false);
+		GuiUtil.drawButton(poseStack, x, y, width, height, hovered, false);
 
 		// Draw the value box
-		GuiUtil.drawButton(poseStack, bounds.getBoundInDirection(ScreenDirection.RIGHT) - (this.valueSectionWidth + 2), bounds.position().y() + 2, this.valueSectionWidth, bounds.height() - 4, false, true);
+		GuiUtil.drawButton(poseStack, (x + width) - (this.valueSectionWidth + 2), y + 2, this.valueSectionWidth, height - 4, false, true);
 
 		// Draw the preview slider
 		if (sliderPosition >= 0) {
@@ -92,21 +90,21 @@ public abstract class BaseOptionElementWidget<T extends OptionMenuElement> exten
 			int sliderSpace = (this.valueSectionWidth - 4) - sliderWidth;
 
 			// Position of slider
-			int sliderPos = (bounds.getBoundInDirection(ScreenDirection.RIGHT) - this.valueSectionWidth) + (int) (sliderPosition * sliderSpace);
+			int sliderPos = ((x + width) - this.valueSectionWidth) + (int)(sliderPosition * sliderSpace);
 
-			GuiUtil.drawButton(poseStack, sliderPos, bounds.position().y() + 4, sliderWidth, bounds.height() - 8, false, false);
+			GuiUtil.drawButton(poseStack, sliderPos, y + 4, sliderWidth, height - 8, false, false);
 		}
 
 		Font font = Minecraft.getInstance().font;
 
 		// Draw the label
-		font.drawShadow(poseStack, this.trimmedLabel, bounds.position().x() + 6, bounds.position().y() + 7, 0xFFFFFF);
+		font.drawShadow(poseStack, this.trimmedLabel, x + 6, y + 7, 0xFFFFFF);
 		// Draw the value label
-		font.drawShadow(poseStack, this.valueLabel, (bounds.getBoundInDirection(ScreenDirection.RIGHT) - 2) - (int)(this.valueSectionWidth * 0.5) - (int)(font.width(this.valueLabel) * 0.5), bounds.position().y() + 7, 0xFFFFFF);
+		font.drawShadow(poseStack, this.valueLabel, (x + (width - 2)) - (int)(this.valueSectionWidth * 0.5) - (int)(font.width(this.valueLabel) * 0.5), y + 7, 0xFFFFFF);
 	}
 
-	protected final void renderOptionWithValue(PoseStack poseStack, boolean hovered) {
-		this.renderOptionWithValue(poseStack, hovered, -1, 0);
+	protected final void renderOptionWithValue(PoseStack poseStack, int x, int y, int width, int height, boolean hovered) {
+		this.renderOptionWithValue(poseStack, x, y, width, height, hovered, -1, 0);
 	}
 
 	protected final void tryRenderTooltip(PoseStack poseStack, int mouseX, int mouseY, boolean hovered) {
@@ -130,9 +128,9 @@ public abstract class BaseOptionElementWidget<T extends OptionMenuElement> exten
 
 	protected final Component createTrimmedLabel() {
 		MutableComponent label = GuiUtil.shortenText(
-			Minecraft.getInstance().font,
-			this.label.copy(),
-			this.maxLabelWidth);
+				Minecraft.getInstance().font,
+				this.label.copy(),
+				this.maxLabelWidth);
 
 		if (this.isValueModified()) {
 			label = label.withStyle(style -> style.withColor(TextColor.fromRgb(0xffc94a)));
@@ -160,7 +158,7 @@ public abstract class BaseOptionElementWidget<T extends OptionMenuElement> exten
 
 	@Override
 	public Optional<Component> getCommentBody() {
-		return Optional.ofNullable(getCommentKey()).map(key -> I18n.exists(key) ? Component.translatable(key) : null);
+		return Optional.ofNullable(getCommentKey()).map(key -> I18n.exists(key) ? new TranslatableComponent(key) : null);
 	}
 
 	@Override
@@ -188,24 +186,5 @@ public abstract class BaseOptionElementWidget<T extends OptionMenuElement> exten
 			return true;
 		}
 		return super.mouseClicked(mx, my, button);
-	}
-
-	@Override
-	public boolean keyPressed(int keycode, int scancode, int modifiers) {
-		if (keycode == InputConstants.KEY_RETURN) {
-			boolean refresh = Screen.hasControlDown()
-				? applyOriginalValue()
-				: (Screen.hasShiftDown() ? applyPreviousValue() : applyNextValue());
-
-			if (refresh) {
-				this.navigation.refresh();
-			}
-
-			GuiUtil.playButtonClickSound();
-
-			return true;
-		}
-
-		return false;
 	}
 }

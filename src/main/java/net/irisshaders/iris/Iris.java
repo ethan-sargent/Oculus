@@ -3,13 +3,11 @@ package net.irisshaders.iris;
 import com.google.common.base.Throwables;
 import com.mojang.blaze3d.platform.GlDebug;
 import com.mojang.blaze3d.platform.InputConstants;
-import com.sun.jna.platform.unix.LibC;
 import net.irisshaders.iris.compat.dh.DHCompat;
 import net.irisshaders.iris.config.IrisConfig;
 import net.irisshaders.iris.gl.GLDebug;
 import net.irisshaders.iris.gl.shader.ShaderCompileException;
 import net.irisshaders.iris.gl.shader.StandardMacros;
-import net.irisshaders.iris.gui.debug.DebugLoadFailedGridScreen;
 import net.irisshaders.iris.gui.screen.ShaderPackScreen;
 import net.irisshaders.iris.helpers.OptionalBoolean;
 import net.irisshaders.iris.pipeline.IrisRenderingPipeline;
@@ -28,27 +26,27 @@ import net.irisshaders.iris.shaderpack.programs.ProgramSet;
 import net.irisshaders.iris.texture.pbr.PBRTextureManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
-import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.common.ForgeConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.NetworkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.system.Configuration;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -108,24 +106,17 @@ public class Iris {
 
 	public Iris() {
 		try {
-			FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onKeyRegister);
+			FMLJavaModLoadingContext.get().getModEventBus().addListener(this::onInitializeClient);
 			MinecraftForge.EVENT_BUS.addListener(this::onKeyInput);
 
 			IRIS_VERSION = ModList.get().getModContainerById(MODID).get().getModInfo().getVersion().toString();
 
-			ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> new ConfigScreenHandler.ConfigScreenFactory((mc, screen) -> new ShaderPackScreen(screen)));
 			ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> NetworkConstants.IGNORESERVERONLY, (a, b) -> true));
 		}catch (Exception ignored) {
 		}
 	}
 
-	public void onKeyRegister(RegisterKeyMappingsEvent event) {
-		event.register(reloadKeybind);
-		event.register(toggleShadersKeybind);
-		event.register(shaderpackScreenKeybind);
-	}
-
-	public void onKeyInput(InputEvent.Key event) {
+	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		handleKeybinds(Minecraft.getInstance());
 	}
 
@@ -172,14 +163,14 @@ public class Iris {
 				reload();
 
 				if (minecraft.player != null) {
-					minecraft.player.displayClientMessage(Component.translatable("iris.shaders.reloaded"), false);
+					minecraft.player.displayClientMessage(new TranslatableComponent("iris.shaders.reloaded"), false);
 				}
 
 			} catch (Exception e) {
 				logger.error("Error while reloading Shaders for " + MODNAME + "!", e);
 
 				if (minecraft.player != null) {
-					minecraft.player.displayClientMessage(Component.translatable("iris.shaders.reloaded.failure", Throwables.getRootCause(e).getMessage()).withStyle(ChatFormatting.RED), false);
+					minecraft.player.displayClientMessage(new TranslatableComponent("iris.shaders.reloaded.failure", Throwables.getRootCause(e).getMessage()).withStyle(ChatFormatting.RED), false);
 				}
 			}
 		} else if (toggleShadersKeybind.consumeClick()) {
@@ -189,7 +180,7 @@ public class Iris {
 				logger.error("Error while toggling shaders!", e);
 
 				if (minecraft.player != null) {
-					minecraft.player.displayClientMessage(Component.translatable("iris.shaders.toggled.failure", Throwables.getRootCause(e).getMessage()).withStyle(ChatFormatting.RED), false);
+					minecraft.player.displayClientMessage(new TranslatableComponent("iris.shaders.toggled.failure", Throwables.getRootCause(e).getMessage()).withStyle(ChatFormatting.RED), false);
 				}
 				setShadersDisabled();
 				fallback = true;
@@ -198,7 +189,7 @@ public class Iris {
 			minecraft.setScreen(new ShaderPackScreen(null));
 		} else if (wireframeKeybind.consumeClick()) {
 			if (irisConfig.areDebugOptionsEnabled() && minecraft.player != null && !Minecraft.getInstance().isLocalServer()) {
-				minecraft.player.displayClientMessage(Component.literal("No cheating; wireframe only in singleplayer!"), false);
+				minecraft.player.displayClientMessage(new TextComponent("No cheating; wireframe only in singleplayer!"), false);
 			}
 		}
 	}
@@ -213,7 +204,7 @@ public class Iris {
 
 		reload();
 		if (minecraft.player != null) {
-			minecraft.player.displayClientMessage(enabled ? Component.translatable("iris.shaders.toggled", currentPackName) : Component.translatable("iris.shaders.disabled"), false);
+			minecraft.player.displayClientMessage(enabled ? new TranslatableComponent("iris.shaders.toggled", currentPackName) : new TranslatableComponent("iris.shaders.disabled"), false);
 		}
 	}
 
@@ -407,9 +398,9 @@ public class Iris {
 
 		logger.info("Debug functionality is " + (enable ? "enabled, logging will be more verbose!" : "disabled."));
 		if (Minecraft.getInstance().player != null) {
-			Minecraft.getInstance().player.displayClientMessage(Component.translatable(success != 0 ? (enable ? "iris.shaders.debug.enabled" : "iris.shaders.debug.disabled") : "iris.shaders.debug.failure"), false);
+			Minecraft.getInstance().player.displayClientMessage(new TranslatableComponent(success != 0 ? (enable ? "iris.shaders.debug.enabled" : "iris.shaders.debug.disabled") : "iris.shaders.debug.failure"), false);
 			if (success == 2) {
-				Minecraft.getInstance().player.displayClientMessage(Component.translatable("iris.shaders.debug.restart"), false);
+				Minecraft.getInstance().player.displayClientMessage(new TranslatableComponent("iris.shaders.debug.restart"), false);
 			}
 		}
 	}
@@ -607,14 +598,10 @@ public class Iris {
 		try {
 			return new IrisRenderingPipeline(programs);
 		} catch (Exception e) {
-			if (irisConfig.areDebugOptionsEnabled()) {
-				Minecraft.getInstance().setScreen(new DebugLoadFailedGridScreen(Minecraft.getInstance().screen, Component.literal(e instanceof ShaderCompileException ? "Failed to compile shaders" : "Exception"), e));
+			if (Minecraft.getInstance().player != null) {
+				Minecraft.getInstance().player.displayClientMessage(new TranslatableComponent(e instanceof ShaderCompileException ? "iris.load.failure.shader" : "iris.load.failure.generic").append(new TextComponent("Copy Info").withStyle(arg -> arg.withUnderlined(true).withColor(ChatFormatting.BLUE).withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, e.getMessage())))), false);
 			} else {
-				if (Minecraft.getInstance().player != null) {
-					Minecraft.getInstance().player.displayClientMessage(Component.translatable(e instanceof ShaderCompileException ? "iris.load.failure.shader" : "iris.load.failure.generic").append(Component.literal("Copy Info").withStyle(arg -> arg.withUnderlined(true).withColor(ChatFormatting.BLUE).withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, e.getMessage())))), false);
-				} else {
-					storedError = Optional.of(e);
-				}
+				storedError = Optional.of(e);
 			}
 			logger.error("Failed to create shader rendering pipeline, disabling shaders!", e);
 			// TODO: This should be reverted if a dimension change causes shaders to compile again
@@ -731,6 +718,12 @@ public class Iris {
 		toggleShadersKeybind = new KeyMapping("iris.keybind.toggleShaders", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, "iris.keybinds");
 		shaderpackScreenKeybind = new KeyMapping("iris.keybind.shaderPackSelection", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_O, "iris.keybinds");
 		wireframeKeybind = new KeyMapping("iris.keybind.wireframe", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), "iris.keybinds");
+			IRIS_VERSION = ModList.get().getModContainerById(MODID).get().getModInfo().getVersion().toString();
+			ClientRegistry.registerKeyBinding(reloadKeybind);
+			ClientRegistry.registerKeyBinding(toggleShadersKeybind);
+			ClientRegistry.registerKeyBinding(shaderpackScreenKeybind);
+
+			ForgeConfig.CLIENT.experimentalForgeLightPipelineEnabled.set(false);
 
 		DHCompat.run();
 
@@ -753,5 +746,14 @@ public class Iris {
 		}
 
 		initialized = true;
+	}
+
+	public void onInitializeClient(final FMLClientSetupEvent event) {
+		IRIS_VERSION = ModList.get().getModContainerById(MODID).get().getModInfo().getVersion().toString();
+		ClientRegistry.registerKeyBinding(reloadKeybind);
+		ClientRegistry.registerKeyBinding(toggleShadersKeybind);
+		ClientRegistry.registerKeyBinding(shaderpackScreenKeybind);
+
+		ForgeConfig.CLIENT.experimentalForgeLightPipelineEnabled.set(false);
 	}
 }

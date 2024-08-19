@@ -7,11 +7,9 @@ import net.irisshaders.iris.gui.NavigationController;
 import net.irisshaders.iris.gui.screen.ShaderPackScreen;
 import net.irisshaders.iris.shaderpack.option.StringOption;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuStringOptionElement;
-import net.minecraft.client.gui.navigation.ScreenDirection;
-import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.network.chat.TextComponent;
 
 import java.util.List;
 
@@ -21,7 +19,6 @@ public class StringElementWidget extends BaseOptionElementWidget<OptionMenuStrin
 	protected String appliedValue;
 	protected int valueCount;
 	protected int valueIndex;
-	protected MutableComponent prefix, suffix;
 
 	public StringElementWidget(OptionMenuStringOptionElement element) {
 		super(element);
@@ -40,10 +37,7 @@ public class StringElementWidget extends BaseOptionElementWidget<OptionMenuStrin
 		// The value currently in use by the shader pack
 		this.appliedValue = this.element.getAppliedOptionValues().getStringValueOrDefault(this.option.getName());
 
-		// Do not use I18n, it'll cause issues with packs trying to use % as prefixes/suffixes.
-		this.prefix = Component.literal(Language.getInstance().has("prefix." + this.option.getName()) ? Language.getInstance().getOrDefault("prefix." + this.option.getName()) : "");
-		this.suffix = Component.literal(Language.getInstance().has("suffix." + this.option.getName()) ? Language.getInstance().getOrDefault("suffix." + this.option.getName()) : "");
-		this.setLabel(GuiUtil.translateOrDefault(Component.literal(this.option.getName()), "option." + this.option.getName()));
+		this.setLabel(GuiUtil.translateOrDefault(new TextComponent(this.option.getName()), "option." + this.option.getName()));
 
 		List<String> values = this.option.getAllowedValues();
 
@@ -52,15 +46,11 @@ public class StringElementWidget extends BaseOptionElementWidget<OptionMenuStrin
 	}
 
 	@Override
-	public void render(PoseStack poseStack, int mouseX, int mouseY, float tickDelta, boolean hovered) {
-		this.updateRenderParams(0);
+	public void render(PoseStack poseStack, int x, int y, int width, int height, int mouseX, int mouseY, float tickDelta, boolean hovered) {
+		this.updateRenderParams(width, 0);
 
-		this.renderOptionWithValue(poseStack, hovered || isFocused());
-		if (usedKeyboard) {
-			tryRenderTooltip(poseStack, bounds.getBoundInDirection(ScreenDirection.RIGHT), bounds.position().y(), hovered);
-		} else {
-			tryRenderTooltip(poseStack, mouseX, mouseY, hovered);
-		}
+		this.renderOptionWithValue(poseStack, x, y, width, height, hovered);
+		this.tryRenderTooltip(poseStack, mouseX, mouseY, hovered);
 	}
 
 	private void increment(int amount) {
@@ -71,9 +61,9 @@ public class StringElementWidget extends BaseOptionElementWidget<OptionMenuStrin
 
 	@Override
 	protected Component createValueLabel() {
-		return prefix.copy().append(GuiUtil.translateOrDefault(
-			Component.literal(getValue()).append(suffix),
-			"value." + this.option.getName() + "." + getValue())).withStyle(style -> style.withColor(TextColor.fromRgb(0x6688ff)));
+		return GuiUtil.translateOrDefault(
+				new TextComponent(getValue()).withStyle(style -> style.withColor(TextColor.fromRgb(0x6688ff))),
+				"value." + this.option.getName() + "." + getValue());
 	}
 
 	@Override

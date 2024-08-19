@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.mixin.texture.AnimationMetadataSectionAccessor;
 import net.irisshaders.iris.mixin.texture.TextureAtlasAccessor;
+import net.irisshaders.iris.texture.TextureInfoCache;
 import net.irisshaders.iris.texture.format.TextureFormat;
 import net.irisshaders.iris.texture.format.TextureFormatLoader;
 import net.irisshaders.iris.texture.mipmap.ChannelMipmapGenerator;
@@ -38,33 +39,36 @@ public class AtlasPBRLoader implements PBRTextureLoader<TextureAtlas> {
 		LinearBlendFunction.INSTANCE
 	);
 
+
 	@Override
 	public void load(TextureAtlas atlas, ResourceManager resourceManager, PBRTextureConsumer pbrTextureConsumer) {
-		TextureAtlasAccessor atlasAccessor = (TextureAtlasAccessor) atlas;
-		int atlasWidth = atlasAccessor.callGetWidth();
-		int atlasHeight = atlasAccessor.callGetHeight();
-		int mipLevel = atlasAccessor.getMipLevel();
+		TextureInfoCache.TextureInfo textureInfo = TextureInfoCache.INSTANCE.getInfo(atlas.getId());
+		int atlasWidth = textureInfo.getWidth();
+		int atlasHeight = textureInfo.getHeight();
+		int mipLevel = fetchAtlasMipLevel(atlas);
 
 		PBRAtlasTexture normalAtlas = null;
 		PBRAtlasTexture specularAtlas = null;
 		for (TextureAtlasSprite sprite : ((TextureAtlasAccessor) atlas).getTexturesByName().values()) {
-			PBRTextureAtlasSprite normalSprite = createPBRSprite(sprite, resourceManager, atlas, atlasWidth, atlasHeight, mipLevel, PBRType.NORMAL);
-			PBRTextureAtlasSprite specularSprite = createPBRSprite(sprite, resourceManager, atlas, atlasWidth, atlasHeight, mipLevel, PBRType.SPECULAR);
-			if (normalSprite != null) {
-				if (normalAtlas == null) {
-					normalAtlas = new PBRAtlasTexture(atlas, PBRType.NORMAL);
+			if (!(sprite instanceof MissingTextureAtlasSprite)) {
+				TextureAtlasSprite normalSprite = createPBRSprite(sprite, resourceManager, atlas, atlasWidth, atlasHeight, mipLevel, PBRType.NORMAL);
+				TextureAtlasSprite specularSprite = createPBRSprite(sprite, resourceManager, atlas, atlasWidth, atlasHeight, mipLevel, PBRType.SPECULAR);
+				if (normalSprite != null) {
+					if (normalAtlas == null) {
+						normalAtlas = new PBRAtlasTexture(atlas, PBRType.NORMAL);
+					}
+					normalAtlas.addSprite(normalSprite);
+					PBRSpriteHolder pbrSpriteHolder = ((TextureAtlasSpriteExtension) sprite).getOrCreatePBRHolder();
+					pbrSpriteHolder.setNormalSprite(normalSprite);
 				}
-				normalAtlas.addSprite(normalSprite);
-				PBRSpriteHolder pbrSpriteHolder = ((SpriteContentsExtension) sprite.contents()).getOrCreatePBRHolder();
-				pbrSpriteHolder.setNormalSprite(normalSprite);
-			}
-			if (specularSprite != null) {
-				if (specularAtlas == null) {
-					specularAtlas = new PBRAtlasTexture(atlas, PBRType.SPECULAR);
+				if (specularSprite != null) {
+					if (specularAtlas == null) {
+						specularAtlas = new PBRAtlasTexture(atlas, PBRType.SPECULAR);
+					}
+					specularAtlas.addSprite(specularSprite);
+					PBRSpriteHolder pbrSpriteHolder = ((TextureAtlasSpriteExtension) sprite).getOrCreatePBRHolder();
+					pbrSpriteHolder.setSpecularSprite(specularSprite);
 				}
-				specularAtlas.addSprite(specularSprite);
-				PBRSpriteHolder pbrSpriteHolder = ((SpriteContentsExtension) sprite.contents()).getOrCreatePBRHolder();
-				pbrSpriteHolder.setSpecularSprite(specularSprite);
 			}
 		}
 
@@ -79,7 +83,6 @@ public class AtlasPBRLoader implements PBRTextureLoader<TextureAtlas> {
 			}
 		}
 	}
-
 	@Nullable
 	protected PBRTextureAtlasSprite createPBRSprite(TextureAtlasSprite sprite, ResourceManager resourceManager, TextureAtlas atlas, int atlasWidth, int atlasHeight, int mipLevel, PBRType pbrType) {
 		ResourceLocation spriteName = sprite.contents().name();

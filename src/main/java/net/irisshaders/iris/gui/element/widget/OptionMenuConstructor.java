@@ -16,7 +16,7 @@ import net.irisshaders.iris.shaderpack.option.menu.OptionMenuProfileElement;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuStringOptionElement;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuSubElementScreen;
 import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,10 +28,10 @@ public final class OptionMenuConstructor {
 
 	static {
 		registerScreen(OptionMenuMainElementScreen.class, screen ->
-			new ElementWidgetScreenData(Component.literal(Iris.getCurrentPackName()).append(Iris.isFallback() ? " (fallback)" : "").withStyle(ChatFormatting.BOLD), false));
+			new ElementWidgetScreenData(new TextComponent(Iris.getCurrentPackName()).append(Iris.isFallback() ? " (fallback)" : "").withStyle(ChatFormatting.BOLD), false));
 
 		registerScreen(OptionMenuSubElementScreen.class, screen ->
-			new ElementWidgetScreenData(GuiUtil.translateOrDefault(Component.literal(screen.screenId), "screen." + screen.screenId), true));
+			new ElementWidgetScreenData(GuiUtil.translateOrDefault(new TextComponent(screen.screenId), "screen." + screen.screenId), true));
 
 		registerWidget(OptionMenuBooleanOptionElement.class, BooleanElementWidget::new);
 		registerWidget(OptionMenuProfileElement.class, ProfileElementWidget::new);
