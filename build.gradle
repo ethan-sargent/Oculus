@@ -1,6 +1,5 @@
 plugins {
-	id 'com.github.johnrengelman.shadow' version '8.1.1'
-	id 'dev.architectury.loom' version '1.4-SNAPSHOT'
+	id 'dev.architectury.loom' version '1.6-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -27,16 +26,6 @@ loom {
 	mixin.defaultRefmapName = "oculus-mixins-refmap.json"
 }
 
-configurations {
-	shadow {
-		transitive = false
-	}
-}
-
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
-archivesBaseName = "${project.archives_base_name}-mc${project.minecraft_version}"
 version = project.mod_version
 group = project.maven_group
 
@@ -107,12 +96,17 @@ repositories {
 dependencies {
 	minecraft "com.mojang:minecraft:${minecraft_version}"
 	mappings loom.officialMojangMappings()
-	forge "net.neoforged:forge:${minecraft_version}-${forge_version}"
+	forge "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-	modImplementation "org.embeddedt:embeddium-${minecraft_version}:${embeddium_version}"
+	implementation 'org.apache.ant:ant:1.10.11'
+	modImplementation "maven.modrinth:rubidium:0.5.4"
+	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
+	implementation(include("io.github.llamalad7:mixinextras-forge:0.3.5"))
+	implementation(include('org.joml:joml:1.10.5'))
+
 	modCompileOnly(files("DistantHorizons-forge-2.0.4-a-dev-1.20.1.jar"))
 
-	forgeRuntimeLibrary(implementation(shadow(project(path: ":glsl-relocated", configuration: "bundledJar")))) {
+	forgeRuntimeLibrary(implementation(project(path: ":glsl-relocated", configuration: "bundledJar"))) {
 		transitive = false
 	}
 	forgeRuntimeLibrary(implementation(include("org.anarres:jcpp:1.4.14")))
@@ -126,43 +120,21 @@ processResources {
 	}
 }
 
-shadowJar {
-	configurations = [project.configurations.shadow]
-
-	from jar.archiveFile
-
-	relocate 'org.apache.commons.collections4', 'oculus.org.apache.commons.collections4'
-
-	archiveClassifier.set "shadow"
-
-	manifest {
-		attributes(
-				'Main-Class': 'net.irisshaders.iris.LaunchWarn'
-		)
-	}
-}
-
-remapJar {
-	inputFile.set shadowJar.archiveFile
-	dependsOn shadowJar
-}
-
-jar {
-	from sourceSets.sodiumCompatibility.output
-	from sourceSets.vendored.output
-	from sourceSets.desktop.output
-}
-
 java {
+	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
+	// if it is present.
+	// If you remove this line, sources will not be generated.
 	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
-sourcesJar {
-	from sourceSets.sodiumCompatibility.allSource
-	from sourceSets.vendored.allSource
-	from sourceSets.desktop.allSource
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
 }
 
+// Configure Maven publishing.
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
@@ -170,6 +142,11 @@ publishing {
 		}
 	}
 
+	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
+		// Add repositories to publish to here.
+		// Notice: This block does NOT have the same function as the block in the top level.
+		// The repositories here will be used for publishing your artifact, not for
+		// retrieving dependencies.
 	}
 }
