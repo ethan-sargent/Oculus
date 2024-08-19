@@ -26,7 +26,7 @@ public class FullScreenQuadRenderer {
 		bufferBuilder.vertex(0.0F, 1.0F, 0.0F).uv(0.0F, 1.0F).endVertex();
 		BufferBuilder.RenderedBuffer renderedBuffer = bufferBuilder.end();
 
-		quad = new VertexBuffer(VertexBuffer.Usage.STATIC);
+		quad = new VertexBuffer();
 		quad.bind();
 		quad.upload(renderedBuffer);
 		VertexBuffer.unbind();

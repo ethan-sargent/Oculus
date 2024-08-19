@@ -7,7 +7,6 @@ import net.irisshaders.iris.gui.screen.ShaderPackScreen;
 import net.irisshaders.iris.shaderpack.option.BooleanOption;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuBooleanOptionElement;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 public class BooleanElementWidget extends BaseOptionElementWidget<OptionMenuBooleanOptionElement> {
@@ -46,11 +45,11 @@ public class BooleanElementWidget extends BaseOptionElementWidget<OptionMenuBool
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tickDelta, boolean hovered) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float tickDelta, boolean hovered) {
 		this.updateRenderParams(28);
 
-		this.renderOptionWithValue(guiGraphics, hovered || isFocused());
-		this.tryRenderTooltip(guiGraphics, mouseX, mouseY, hovered);
+		this.renderOptionWithValue(poseStack, hovered || isFocused());
+		this.tryRenderTooltip(poseStack, mouseX, mouseY, hovered);
 	}
 
 	@Override

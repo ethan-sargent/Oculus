@@ -1,10 +1,10 @@
 package net.irisshaders.iris.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -16,7 +16,7 @@ import net.minecraft.sounds.SoundEvents;
  * Class serving as abstraction and
  * centralization for common GUI
  * rendering/other code calls.
- * <p>
+ *
  * Helps allow for easier portability
  * to Minecraft 1.17 by abstracting
  * some code that will be changed.
@@ -25,8 +25,7 @@ public final class GuiUtil {
 	public static final ResourceLocation IRIS_WIDGETS_TEX = new ResourceLocation("iris", "textures/gui/widgets.png");
 	private static final Component ELLIPSIS = Component.literal("...");
 
-	private GuiUtil() {
-	}
+	private GuiUtil() {}
 
 	private static Minecraft client() {
 		return Minecraft.getInstance();
@@ -51,7 +50,7 @@ public final class GuiUtil {
 	 * @param hovered  Whether the button is being hovered over with the mouse
 	 * @param disabled Whether the button should use the "disabled" texture
 	 */
-	public static void drawButton(GuiGraphics guiGraphics, int x, int y, int width, int height, boolean hovered, boolean disabled) {
+	public static void drawButton(PoseStack poseStack, int x, int y, int width, int height, boolean hovered, boolean disabled) {
 		// Create variables for half of the width and height.
 		// Will not be exact when width and height are odd, but
 		// that case is handled within the draw calls.
@@ -65,13 +64,13 @@ public final class GuiUtil {
 		RenderSystem.enableBlend();
 
 		// Top left section
-		guiGraphics.blit(IRIS_WIDGETS_TEX, x, y, 0, vOffset, halfWidth, halfHeight, 256, 256);
+		GuiComponent.blit(poseStack, x, y, 0, vOffset, halfWidth, halfHeight, 256, 256);
 		// Top right section
-		guiGraphics.blit(IRIS_WIDGETS_TEX, x + halfWidth, y, 200 - (width - halfWidth), vOffset, width - halfWidth, halfHeight, 256, 256);
+		GuiComponent.blit(poseStack, x + halfWidth, y, 200 - (width - halfWidth), vOffset, width - halfWidth, halfHeight, 256, 256);
 		// Bottom left section
-		guiGraphics.blit(IRIS_WIDGETS_TEX, x, y + halfHeight, 0, vOffset + (20 - (height - halfHeight)), halfWidth, height - halfHeight, 256, 256);
+		GuiComponent.blit(poseStack, x, y + halfHeight, 0, vOffset + (20 - (height - halfHeight)), halfWidth, height - halfHeight, 256, 256);
 		// Bottom right section
-		guiGraphics.blit(IRIS_WIDGETS_TEX, x + halfWidth, y + halfHeight, 200 - (width - halfWidth), vOffset + (20 - (height - halfHeight)), width - halfWidth, height - halfHeight, 256, 256);
+		GuiComponent.blit(poseStack, x + halfWidth, y + halfHeight, 200 - (width - halfWidth), vOffset + (20 - (height - halfHeight)), width - halfWidth, height - halfHeight, 256, 256);
 	}
 
 	/**
@@ -83,20 +82,20 @@ public final class GuiUtil {
 	 * @param width  The width of the panel
 	 * @param height The height of the panel
 	 */
-	public static void drawPanel(GuiGraphics guiGraphics, int x, int y, int width, int height) {
+	public static void drawPanel(PoseStack poseStack, int x, int y, int width, int height) {
 		int borderColor = 0xDEDEDEDE;
 		int innerColor = 0xDE000000;
 
 		// Top border section
-		guiGraphics.fill(RenderType.guiOverlay(), x, y, x + width, y + 1, borderColor);
+		GuiComponent.fill(poseStack, x, y, x + width, y + 1, borderColor);
 		// Bottom border section
-		guiGraphics.fill(RenderType.guiOverlay(), x, (y + height) - 1, x + width, y + height, borderColor);
+		GuiComponent.fill(poseStack, x, (y + height) - 1, x + width, y + height, borderColor);
 		// Left border section
-		guiGraphics.fill(RenderType.guiOverlay(), x, y + 1, x + 1, (y + height) - 1, borderColor);
+		GuiComponent.fill(poseStack, x, y + 1, x + 1, (y + height) - 1, borderColor);
 		// Right border section
-		guiGraphics.fill(RenderType.guiOverlay(), (x + width) - 1, y + 1, x + width, (y + height) - 1, borderColor);
+		GuiComponent.fill(poseStack, (x + width) - 1, y + 1, x + width, (y + height) - 1, borderColor);
 		// Inner section
-		guiGraphics.fill(RenderType.guiOverlay(), x + 1, y + 1, (x + width) - 1, (y + height) - 1, innerColor);
+		GuiComponent.fill(poseStack, x + 1, y + 1, (x + width) - 1, (y + height) - 1, innerColor);
 	}
 
 	/**
@@ -106,9 +105,9 @@ public final class GuiUtil {
 	 * @param x    The x position of the panel
 	 * @param y    The y position of the panel
 	 */
-	public static void drawTextPanel(Font font, GuiGraphics guiGraphics, Component text, int x, int y) {
-		drawPanel(guiGraphics, x, y, font.width(text) + 8, 16);
-		guiGraphics.drawString(font, text, x + 4, y + 4, 0xFFFFFF);
+	public static void drawTextPanel(Font font, PoseStack poseStack, Component text, int x, int y) {
+		drawPanel(poseStack, x, y, font.width(text) + 8, 16);
+		font.drawShadow(poseStack, text, x + 4, y + 4, 0xFFFFFF);
 	}
 
 	/**
@@ -149,7 +148,7 @@ public final class GuiUtil {
 	/**
 	 * Plays the {@code UI_BUTTON_CLICK} sound event as a
 	 * master sound effect.
-	 * <p>
+	 *
 	 * Used in non-{@code ButtonWidget} UI elements upon click
 	 * or other action.
 	 */
@@ -188,12 +187,12 @@ public final class GuiUtil {
 		 * @param x The x position to draw the icon at (left)
 		 * @param y The y position to draw the icon at (top)
 		 */
-		public void draw(GuiGraphics guiGraphics, int x, int y) {
+		public void draw(PoseStack poseStack, int x, int y) {
 			// Sets RenderSystem to use solid white as the tint color for blend mode (1.16), and enables blend mode
 			RenderSystem.enableBlend();
 
 			// Draw the texture to the screen
-			guiGraphics.blit(IRIS_WIDGETS_TEX, x, y, u, v, width, height, 256, 256);
+			GuiComponent.blit(poseStack, x, y, u, v, width, height, 256, 256);
 		}
 
 		public int getWidth() {

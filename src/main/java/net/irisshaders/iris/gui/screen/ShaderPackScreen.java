@@ -14,7 +14,6 @@ import net.irisshaders.iris.shaderpack.ShaderPack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.ConfirmScreen;
@@ -90,11 +89,11 @@ public class ShaderPackScreen extends Screen implements HudHideable {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float delta) {
 		if (this.minecraft.level == null) {
-			this.renderBackground(guiGraphics);
+			this.renderBackground(poseStack);
 		} else if (!this.guiHidden) {
-			guiGraphics.fillGradient(0, 0, width, height, 0x4F232323, 0x4F232323);
+			this.fillGradient(poseStack, 0, 0, width, height, 0x4F232323, 0x4F232323);
 		}
 
 		if (Screen.hasControlDown() && InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_D)) {
@@ -109,28 +108,28 @@ public class ShaderPackScreen extends Screen implements HudHideable {
 
 		if (!this.guiHidden) {
 			if (optionMenuOpen && this.shaderOptionList != null) {
-				this.shaderOptionList.render(guiGraphics, mouseX, mouseY, delta);
+				this.shaderOptionList.render(poseStack, mouseX, mouseY, delta);
 			} else {
-				this.shaderPackList.render(guiGraphics, mouseX, mouseY, delta);
+				this.shaderPackList.render(poseStack, mouseX, mouseY, delta);
 			}
 		}
 
 		float previousHoverTimer = this.guiButtonHoverTimer;
-		super.render(guiGraphics, mouseX, mouseY, delta);
+		super.render(poseStack, mouseX, mouseY, delta);
 		if (previousHoverTimer == this.guiButtonHoverTimer) {
 			this.guiButtonHoverTimer = 0.0f;
 		}
 
 		if (!this.guiHidden) {
-			guiGraphics.drawCenteredString(this.font, this.title, (int) (this.width * 0.5), 8, 0xFFFFFF);
+			drawCenteredString(poseStack, this.font, this.title, (int) (this.width * 0.5), 8, 0xFFFFFF);
 
 			if (notificationDialog != null && notificationDialogTimer > 0) {
-				guiGraphics.drawCenteredString(this.font, notificationDialog, (int) (this.width * 0.5), 21, 0xFFFFFF);
+				drawCenteredString(poseStack, this.font, notificationDialog, (int) (this.width * 0.5), 21, 0xFFFFFF);
 			} else {
 				if (optionMenuOpen) {
-					guiGraphics.drawCenteredString(this.font, CONFIGURE_TITLE, (int) (this.width * 0.5), 21, 0xFFFFFF);
+					drawCenteredString(poseStack, this.font, CONFIGURE_TITLE, (int) (this.width * 0.5), 21, 0xFFFFFF);
 				} else {
-					guiGraphics.drawCenteredString(this.font, SELECT_TITLE, (int) (this.width * 0.5), 21, 0xFFFFFF);
+					drawCenteredString(poseStack, this.font, SELECT_TITLE, (int) (this.width * 0.5), 21, 0xFFFFFF);
 				}
 			}
 
@@ -141,11 +140,11 @@ public class ShaderPackScreen extends Screen implements HudHideable {
 				int x = (int) (0.5 * this.width) - 157;
 				int y = this.height - (panelHeight + 4);
 				// Draw panel
-				GuiUtil.drawPanel(guiGraphics, x, y, COMMENT_PANEL_WIDTH, panelHeight);
+				GuiUtil.drawPanel(poseStack, x, y, COMMENT_PANEL_WIDTH, panelHeight);
 				// Draw text
-				guiGraphics.drawString(font, this.hoveredElementCommentTitle.orElse(Component.empty()), x + 4, y + 4, 0xFFFFFF);
+				this.font.drawShadow(poseStack, this.hoveredElementCommentTitle.orElse(Component.empty()), x + 4, y + 4, 0xFFFFFF);
 				for (int i = 0; i < this.hoveredElementCommentBody.size(); i++) {
-					guiGraphics.drawString(font, this.hoveredElementCommentBody.get(i), x + 4, (y + 16) + (i * 10), 0xFFFFFF);
+					this.font.drawShadow(poseStack, this.hoveredElementCommentBody.get(i), x + 4, (y + 16) + (i * 10), 0xFFFFFF);
 				}
 			}
 		}
@@ -157,13 +156,13 @@ public class ShaderPackScreen extends Screen implements HudHideable {
 		TOP_LAYER_RENDER_QUEUE.clear();
 
 		if (this.developmentComponent != null) {
-			guiGraphics.drawString(font, developmentComponent, 2, this.height - 10, 0xFFFFFF);
-			guiGraphics.drawString(font, irisTextComponent, 2, this.height - 20, 0xFFFFFF);
+			this.font.drawShadow(poseStack, developmentComponent, 2, this.height - 10, 0xFFFFFF);
+			this.font.drawShadow(poseStack, irisTextComponent, 2, this.height - 20, 0xFFFFFF);
 		} else if (this.updateComponent != null) {
-			guiGraphics.drawString(font, updateComponent, 2, this.height - 10, 0xFFFFFF);
-			guiGraphics.drawString(font, irisTextComponent, 2, this.height - 20, 0xFFFFFF);
+			this.font.drawShadow(poseStack, updateComponent, 2, this.height - 10, 0xFFFFFF);
+			this.font.drawShadow(poseStack, irisTextComponent, 2, this.height - 20, 0xFFFFFF);
 		} else {
-			guiGraphics.drawString(font, irisTextComponent, 2, this.height - 10, 0xFFFFFF);
+			this.font.drawShadow(poseStack, irisTextComponent, 2, this.height - 10, 0xFFFFFF);
 		}
 	}
 

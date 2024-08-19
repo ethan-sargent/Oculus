@@ -7,7 +7,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.ComponentPath;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.AbstractSelectionList;
 import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
@@ -71,7 +71,7 @@ public class ShaderPackSelectionList extends IrisObjectSelectionList<ShaderPackS
 	}
 
 	@Override
-	public void render(GuiGraphics pAbstractSelectionList0, int pInt1, int pInt2, float pFloat3) {
+	public void render(PoseStack pAbstractSelectionList0, int pInt1, int pInt2, float pFloat3) {
 		if (keyValid) {
 			for (WatchEvent<?> event : key.pollEvents()) {
 				if (event.kind() == StandardWatchEventKinds.OVERFLOW) continue;
@@ -330,7 +330,7 @@ public class ShaderPackSelectionList extends IrisObjectSelectionList<ShaderPackS
 		}
 
 		@Override
-		public void render(GuiGraphics guiGraphics, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
+		public void render(PoseStack poseStack, int index, int y, int x, int entryWidth, int entryHeight, int mouseX, int mouseY, boolean hovered, float tickDelta) {
 			this.bounds = new ScreenRectangle(x, y, entryWidth, entryHeight);
 			Font font = Minecraft.getInstance().font;
 			int color = 0xFFFFFF;
@@ -338,7 +338,7 @@ public class ShaderPackSelectionList extends IrisObjectSelectionList<ShaderPackS
 
 			if (hovered) {
 				GuiUtil.bindIrisWidgetsTexture();
-				GuiUtil.drawButton(guiGraphics, x - 2, y - 2, entryWidth, entryHeight + 4, hovered, false);
+				GuiUtil.drawButton(poseStack, x - 2, y - 2, entryWidth, entryHeight + 4, hovered, false);
 			}
 
 			boolean shadersEnabled = list.getTopButtonRow().shadersEnabled;
@@ -361,7 +361,7 @@ public class ShaderPackSelectionList extends IrisObjectSelectionList<ShaderPackS
 				color = 0xA2A2A2;
 			}
 
-			guiGraphics.drawCenteredString(font, text, (x + entryWidth / 2) - 2, y + (entryHeight - 11) / 2, color);
+			drawCenteredString(poseStack, font, text, (x + entryWidth / 2) - 2, y + (entryHeight - 11) / 2, color);
 		}
 
 		@Override

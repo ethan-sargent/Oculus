@@ -31,7 +31,7 @@ public class MixinBufferSource {
 
 	@Inject(method = "endBatch(Lnet/minecraft/client/renderer/RenderType;)V",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/renderer/RenderType;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;Lcom/mojang/blaze3d/vertex/VertexSorting;)V"))
+			target = "net/minecraft/client/renderer/RenderType.end (Lcom/mojang/blaze3d/vertex/BufferBuilder;III)V"))
 	private void iris$beforeFlushBuffer(RenderType renderType, CallbackInfo ci) {
 		if (iris$notRenderingLevel()) {
 			ImmediateState.renderWithExtendedVertexFormat = false;
@@ -40,7 +40,7 @@ public class MixinBufferSource {
 
 	@Inject(method = "endBatch(Lnet/minecraft/client/renderer/RenderType;)V",
 		at = @At(value = "INVOKE",
-			target = "Lnet/minecraft/client/renderer/RenderType;end(Lcom/mojang/blaze3d/vertex/BufferBuilder;Lcom/mojang/blaze3d/vertex/VertexSorting;)V",
+			target = "net/minecraft/client/renderer/RenderType.end (Lcom/mojang/blaze3d/vertex/BufferBuilder;III)V",
 			shift = At.Shift.AFTER))
 	private void iris$afterFlushBuffer(RenderType renderType, CallbackInfo ci) {
 		if (iris$notRenderingLevel()) {

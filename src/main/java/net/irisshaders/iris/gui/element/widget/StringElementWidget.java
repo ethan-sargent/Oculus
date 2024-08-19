@@ -1,12 +1,12 @@
 package net.irisshaders.iris.gui.element.widget;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.gui.GuiUtil;
 import net.irisshaders.iris.gui.NavigationController;
 import net.irisshaders.iris.gui.screen.ShaderPackScreen;
 import net.irisshaders.iris.shaderpack.option.StringOption;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuStringOptionElement;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenDirection;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
@@ -52,14 +52,14 @@ public class StringElementWidget extends BaseOptionElementWidget<OptionMenuStrin
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tickDelta, boolean hovered) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float tickDelta, boolean hovered) {
 		this.updateRenderParams(0);
 
-		this.renderOptionWithValue(guiGraphics, hovered || isFocused());
+		this.renderOptionWithValue(poseStack, hovered || isFocused());
 		if (usedKeyboard) {
-			tryRenderTooltip(guiGraphics, bounds.getBoundInDirection(ScreenDirection.RIGHT), bounds.position().y(), hovered);
+			tryRenderTooltip(poseStack, bounds.getBoundInDirection(ScreenDirection.RIGHT), bounds.position().y(), hovered);
 		} else {
-			tryRenderTooltip(guiGraphics, mouseX, mouseY, hovered);
+			tryRenderTooltip(poseStack, mouseX, mouseY, hovered);
 		}
 	}
 

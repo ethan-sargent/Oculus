@@ -1,10 +1,10 @@
 package net.irisshaders.iris.gui.element.widget;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.irisshaders.iris.gui.GuiUtil;
 import net.irisshaders.iris.shaderpack.option.menu.OptionMenuStringOptionElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenAxis;
 import net.minecraft.client.gui.navigation.ScreenDirection;
 import net.minecraft.client.gui.screens.Screen;
@@ -22,7 +22,7 @@ public class SliderElementWidget extends StringElementWidget {
 	}
 
 	@Override
-	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tickDelta, boolean hovered) {
+	public void render(PoseStack poseStack, int mouseX, int mouseY, float tickDelta, boolean hovered) {
 		this.updateRenderParams(35);
 
 
@@ -31,22 +31,22 @@ public class SliderElementWidget extends StringElementWidget {
 				usedKeyboard = false;
 				mouseDown = false;
 			}
-			this.renderOptionWithValue(guiGraphics, false, (float) valueIndex / (valueCount - 1), PREVIEW_SLIDER_WIDTH);
+			this.renderOptionWithValue(poseStack, false, (float) valueIndex / (valueCount - 1), PREVIEW_SLIDER_WIDTH);
 		} else {
-			this.renderSlider(guiGraphics);
+			this.renderSlider(poseStack);
 		}
 
 		if (usedKeyboard) {
 			if (Screen.hasShiftDown()) {
-				renderTooltip(guiGraphics, SET_TO_DEFAULT, bounds.getBoundInDirection(ScreenDirection.RIGHT), bounds.position().y(), hovered);
+				renderTooltip(poseStack, SET_TO_DEFAULT, bounds.getBoundInDirection(ScreenDirection.RIGHT), bounds.position().y(), hovered);
 			} else if (!this.screen.isDisplayingComment()) {
-				renderTooltip(guiGraphics, this.unmodifiedLabel, bounds.getBoundInDirection(ScreenDirection.RIGHT), bounds.position().y(), hovered);
+				renderTooltip(poseStack, this.unmodifiedLabel, bounds.getBoundInDirection(ScreenDirection.RIGHT), bounds.position().y(), hovered);
 			}
 		} else {
 			if (Screen.hasShiftDown()) {
-				renderTooltip(guiGraphics, SET_TO_DEFAULT, mouseX, mouseY, hovered);
+				renderTooltip(poseStack, SET_TO_DEFAULT, mouseX, mouseY, hovered);
 			} else if (!this.screen.isDisplayingComment()) {
-				renderTooltip(guiGraphics, this.unmodifiedLabel, mouseX, mouseY, hovered);
+				renderTooltip(poseStack, this.unmodifiedLabel, mouseX, mouseY, hovered);
 			}
 		}
 
@@ -67,24 +67,24 @@ public class SliderElementWidget extends StringElementWidget {
 		}
 	}
 
-	private void renderSlider(GuiGraphics guiGraphics) {
+	private void renderSlider(PoseStack poseStack) {
 		GuiUtil.bindIrisWidgetsTexture();
 
 		// Draw background button
-		GuiUtil.drawButton(guiGraphics, bounds.position().x(), bounds.position().y(), bounds.width(), bounds.height(), isFocused(), false);
+		GuiUtil.drawButton(poseStack, bounds.position().x(), bounds.position().y(), bounds.width(), bounds.height(), isFocused(), false);
 		// Draw slider area
-		GuiUtil.drawButton(guiGraphics, bounds.position().x() + 2, bounds.position().y() + 2, bounds.width() - 4, bounds.height() - 4, false, true);
+		GuiUtil.drawButton(poseStack, bounds.position().x() + 2, bounds.position().y() + 2, bounds.width() - 4, bounds.height() - 4, false, true);
 
 		// Range of x values the slider can occupy
 		int sliderSpace = (bounds.width() - 8) - ACTIVE_SLIDER_WIDTH;
 		// Position of slider
 		int sliderPos = (bounds.position().x() + 4) + (int) (((float) valueIndex / (valueCount - 1)) * sliderSpace);
 		// Draw slider
-		GuiUtil.drawButton(guiGraphics, sliderPos, bounds.position().y() + 4, ACTIVE_SLIDER_WIDTH, bounds.height() - 8, this.mouseDown, false);
+		GuiUtil.drawButton(poseStack, sliderPos, bounds.position().y() + 4, ACTIVE_SLIDER_WIDTH, bounds.height() - 8, this.mouseDown, false);
 
 		// Draw value label
 		Font font = Minecraft.getInstance().font;
-		guiGraphics.drawString(font, this.valueLabel, bounds.getCenterInAxis(ScreenAxis.HORIZONTAL) - (int) (font.width(this.valueLabel) * 0.5), bounds.position().y() + 7, 0xFFFFFF);
+		font.drawShadow(poseStack, this.valueLabel, bounds.getCenterInAxis(ScreenAxis.HORIZONTAL) - (int) (font.width(this.valueLabel) * 0.5), bounds.position().y() + 7, 0xFFFFFF);
 	}
 
 	private void whileDragging(int mouseX) {

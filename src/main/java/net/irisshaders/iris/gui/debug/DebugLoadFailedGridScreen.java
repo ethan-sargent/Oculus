@@ -1,6 +1,8 @@
 package net.irisshaders.iris.gui.debug;
 
-import net.irisshaders.iris.Iris;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.coderbot.iris.Iris;
+import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.layouts.FrameLayout;
@@ -48,5 +50,15 @@ public class DebugLoadFailedGridScreen extends Screen {
 		FrameLayout.centerInRectangle(widget, 0, 0, this.width, this.height);
 
 		widget.visitWidgets(this::addRenderableWidget);
+	}
+
+	@Override
+	public void render(PoseStack poseStack, int i, int j, float f) {
+		if (this.minecraft.level == null) {
+			this.renderBackground(poseStack);
+		} else {
+			this.fillGradient(poseStack, 0, 0, width, height, 0x4F232323, 0x4F232323);
+		}
+		super.render(poseStack, i, j, f);
 	}
 }

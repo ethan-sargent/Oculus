@@ -102,7 +102,7 @@ public abstract class MixinCloudRenderer {
 			this.rebuildGeometry(bufferBuilder, cloudDistance + 4, centerCellX, centerCellZ);
 
 			if (this.vertexBufferWithNormals == null) {
-				this.vertexBufferWithNormals = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+				this.vertexBufferWithNormals = new VertexBuffer();
 			}
 
 			this.vertexBufferWithNormals.bind();
