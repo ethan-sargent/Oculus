@@ -103,6 +103,7 @@ dependencies {
 	compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
 	implementation(include("io.github.llamalad7:mixinextras-forge:0.3.5"))
 	implementation(include('org.joml:joml:1.10.5'))
+	modImplementation "org.embeddedt:embeddium-${minecraft_version}:${embeddium_version}"
 
 	modCompileOnly(files("DistantHorizons-forge-2.0.4-a-dev-1.20.1.jar"))
 

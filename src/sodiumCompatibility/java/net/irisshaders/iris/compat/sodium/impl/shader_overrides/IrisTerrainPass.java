@@ -1,7 +1,7 @@
 package net.irisshaders.iris.compat.sodium.impl.shader_overrides;
 
-import me.jellysquid.mods.sodium.client.render.chunk.terrain.DefaultTerrainRenderPasses;
-import me.jellysquid.mods.sodium.client.render.chunk.terrain.TerrainRenderPass;
+import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPass;
+import net.minecraft.world.level.block.Block;
 
 public enum IrisTerrainPass {
 	SHADOW("shadow"),
@@ -24,14 +24,14 @@ public enum IrisTerrainPass {
 		return this == SHADOW || this == SHADOW_CUTOUT;
 	}
 
-	public TerrainRenderPass toTerrainPass() {
+	public BlockRenderPass toTerrainPass() {
 		switch (this) {
 			case SHADOW, GBUFFER_SOLID:
-				return DefaultTerrainRenderPasses.SOLID;
+				return BlockRenderPass.SOLID;
 			case SHADOW_CUTOUT, GBUFFER_CUTOUT:
-				return DefaultTerrainRenderPasses.CUTOUT;
+				return BlockRenderPass.CUTOUT;
 			case GBUFFER_TRANSLUCENT:
-				return DefaultTerrainRenderPasses.TRANSLUCENT;
+				return BlockRenderPass.TRANSLUCENT;
 			default:
 				return null;
 		}

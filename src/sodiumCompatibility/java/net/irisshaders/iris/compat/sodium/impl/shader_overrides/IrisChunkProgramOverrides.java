@@ -6,8 +6,8 @@ import me.jellysquid.mods.sodium.client.gl.shader.GlShader;
 import me.jellysquid.mods.sodium.client.gl.shader.ShaderType;
 import me.jellysquid.mods.sodium.client.render.chunk.shader.ChunkFogMode;
 import me.jellysquid.mods.sodium.client.render.chunk.shader.ChunkShaderOptions;
-import me.jellysquid.mods.sodium.client.render.chunk.terrain.TerrainRenderPass;
-import me.jellysquid.mods.sodium.client.render.chunk.vertex.format.ChunkVertexType;
+import me.jellysquid.mods.sodium.client.render.chunk.passes.BlockRenderPass;
+import me.jellysquid.mods.sodium.client.model.vertex.type.ChunkVertexType;
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.compat.sodium.impl.IrisChunkShaderBindingPoints;
 import net.irisshaders.iris.gl.GLDebug;
@@ -21,6 +21,7 @@ import net.irisshaders.iris.pipeline.WorldRenderingPipeline;
 import net.irisshaders.iris.shadows.ShadowRenderingState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL43C;
 
@@ -321,7 +322,7 @@ public class IrisChunkProgramOverrides {
 	}
 
 	@Nullable
-	public GlProgram<IrisChunkShaderInterface> getProgramOverride(TerrainRenderPass pass, ChunkVertexType vertexType) {
+	public GlProgram<IrisChunkShaderInterface> getProgramOverride(BlockRenderPass pass, ChunkVertexType vertexType) {
 		if (versionCounterForSodiumShaderReload != Iris.getPipelineManager().getVersionCounterForSodiumShaderReload()) {
 			versionCounterForSodiumShaderReload = Iris.getPipelineManager().getVersionCounterForSodiumShaderReload();
 			deleteShaders();
@@ -343,15 +344,15 @@ public class IrisChunkProgramOverrides {
 				throw new IllegalStateException("Shadow program requested, but the pack does not have a shadow pass?");
 			}
 
-			if (pass.supportsFragmentDiscard()) {
+			if (pass == BlockRenderPass.CUTOUT) {
 				return this.programs.get(IrisTerrainPass.SHADOW_CUTOUT);
 			} else {
 				return this.programs.get(IrisTerrainPass.SHADOW);
 			}
 		} else {
-			if (pass.supportsFragmentDiscard()) {
+			if (pass == BlockRenderPass.CUTOUT) {
 				return this.programs.get(IrisTerrainPass.GBUFFER_CUTOUT);
-			} else if (pass.isReverseOrder()) {
+			} else if (pass == BlockRenderPass.TRANSLUCENT) {
 				return this.programs.get(IrisTerrainPass.GBUFFER_TRANSLUCENT);
 			} else {
 				return this.programs.get(IrisTerrainPass.GBUFFER_SOLID);
@@ -359,7 +360,7 @@ public class IrisChunkProgramOverrides {
 		}
 	}
 
-	public void bindFramebuffer(TerrainRenderPass pass) {
+	public void bindFramebuffer(BlockRenderPass pass) {
 		SodiumTerrainPipeline pipeline = getSodiumTerrainPipeline();
 		boolean isShadowPass = ShadowRenderingState.areShadowsCurrentlyBeingRendered();
 
@@ -368,7 +369,7 @@ public class IrisChunkProgramOverrides {
 
 			if (isShadowPass) {
 				framebuffer = pipeline.getShadowFramebuffer();
-			} else if (pass.isReverseOrder()) {
+			} else if (pass == BlockRenderPass.TRANSLUCENT) {
 				framebuffer = pipeline.getTranslucentFramebuffer();
 			} else {
 				framebuffer = pipeline.getTerrainSolidFramebuffer();
